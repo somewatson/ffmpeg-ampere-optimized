@@ -35,6 +35,7 @@ run_benchmark() {
     
     # Use CRF for quality control
     CMD="docker run --rm -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx264 -crf $crf -preset medium -c:a copy /config/$output"
+    echo "Command: $CMD" >&2
     
     start_time=$(date +%s.%N)
     eval $CMD > /dev/null 2>&1
