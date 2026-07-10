@@ -26,8 +26,11 @@ run_benchmark() {
     
     rm -f $output
     
+    CMD="docker run --rm -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx264 -preset medium -c:a copy /config/$output"
+    echo "Command: $CMD"
+    
     start_time=$(date +%s.%N)
-    docker run --rm -v "$(pwd):/config" $image -i /config/$SAMPLE_FILE -c:v libx264 -preset medium -c:a copy /config/$output > /dev/null 2>&1
+    eval $CMD > /dev/null 2>&1
     end_time=$(date +%s.%N)
     
     runtime=$(echo "$end_time - $start_time" | bc)
