@@ -1,7 +1,5 @@
 # FFmpeg Ampere Neoverse-N1 Optimized Image
 
-This project was created by Some Watson with the assistance of opencode, an AI software engineering agent.
-
 This image provides a build of FFmpeg optimized specifically for the ARM Neoverse-N1 architecture, following the Ampere Computing tuning guidelines.
 
 **Source**: [Ampere FFmpeg Tuning Guide](https://amperecomputing.com/tuning-guides/FFmpeg-Tuning-Guide)
@@ -52,3 +50,5 @@ docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
 - Target CPU: `neoverse-n1`
 - Libraries: `libx264`, `libx265`, `libvpx`, `libaom`
 - Compiler flags: `-mcpu=neoverse-n1` used across all build stages.
+
+This project was created by Some Watson with the assistance of opencode, an AI software engineering agent.
