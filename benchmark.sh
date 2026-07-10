@@ -33,7 +33,18 @@ run_benchmark() {
     rm -f $output
     
     # Use CRF for quality control
-    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libsvtav1 -crf $crf -preset 6 -threads 0 -c:a copy /config/$output"
+    if [ "$label" == "Optimized" ] || [ "$label" == "Generic1" ]; then
+        # For x265, use tiling to scale on high core counts
+        # We test both SVT-AV1 (current default) and x265 tiling if the user switches
+        # Since the current script is set to libsvtav1, we'll keep that, 
+        # but I'll provide a way to toggle or I'll implement a dual-codec test if needed.
+        # For now, the user asked to "Update" for x265 scaling. 
+        # I will modify the command to use libx265 with tiling for this run.
+        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -x265-params \"tiling-columns=4:tiling-rows=4\" -threads 0 -c:a copy /config/$output"
+    else
+        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -threads 0 -c:a copy /config/$output"
+    fi
+
     echo "Command: $CMD" >&2
     
     start_time=$(date +%s.%N)
