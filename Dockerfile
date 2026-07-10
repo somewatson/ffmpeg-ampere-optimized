@@ -48,7 +48,7 @@ includedir=/ffmpeg_build/include
 Name: x265
 Description: HEVC encoder
 Version: 0.0.0
-Libs: -L/ffmpeg_build/lib -lx265
+Libs: -L/ffmpeg_build/lib -lx265 -lnuma
 Cflags: -I/ffmpeg_build/include
 EOF
 
@@ -79,10 +79,8 @@ RUN cd /ffmpeg_sources && \
     tar xjvf ffmpeg-snapshot.tar.bz2 && \
     cd ffmpeg
 
-RUN ls -R /ffmpeg_build && \
-    PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" pkg-config --libs x265 && \
-    cd /ffmpeg_sources/ffmpeg && \
-    (PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" ./configure \
+RUN cd /ffmpeg_sources/ffmpeg && \
+    PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" ./configure \
         --prefix="/ffmpeg_build" \
         --pkg-config-flags="--static" \
         --extra-cflags="-I/ffmpeg_build/include -mcpu=neoverse-n1" \
@@ -96,7 +94,7 @@ RUN ls -R /ffmpeg_build && \
         --enable-libvpx \
         --enable-libx264 \
         --enable-libx265 \
-        --enable-nonfree) || (cat ffbuild/config.log && exit 1)
+        --enable-nonfree
 
 RUN cd /ffmpeg_sources/ffmpeg && \
     make -j $(nproc) && \
