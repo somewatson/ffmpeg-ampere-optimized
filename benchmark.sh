@@ -22,12 +22,12 @@ run_benchmark() {
     local iteration=$3
     local output="out_${label}_${iteration}.mp4"
     
-    echo "Running benchmark for $label ($image) - Iteration $iteration..."
+    echo "Running benchmark for $label ($image) - Iteration $iteration..." >&2
     
     rm -f $output
     
     CMD="docker run --rm -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx264 -preset medium -c:a copy /config/$output"
-    echo "Command: $CMD"
+    echo "Command: $CMD" >&2
     
     start_time=$(date +%s.%N)
     eval $CMD > /dev/null 2>&1
