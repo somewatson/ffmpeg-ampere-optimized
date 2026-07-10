@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Benchmarking script for FFmpeg Docker containers: Bitrate vs Quality Analysis
+# Benchmarking script for FFmpeg Docker containers: Codec Performance Comparison
 
 SAMPLE_URL="https://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4"
 SAMPLE_FILE="video.mp4"
 GENERIC_IMAGE_1="linuxserver/ffmpeg"
 OPTIMIZED_IMAGE="somewatson/ffmpeg-ampere-n1"
-CRF_VALUES=(16 23)
+CODECS=("libx264" "libx265" "libsvtav1")
+CRF=23
 
 # Get total frames from source file
 TOTAL_FRAMES=""
@@ -25,32 +26,15 @@ fi
 run_benchmark() {
     local image=$1
     local label=$2
-    local crf=$3
-    local output="out_${label}_crf${crf}.mp4"
+    local codec=$3
+    local output="out_${label}_${codec}.mp4"
     
-    echo "Encoding $label ($image) CRF $crf..." >&2
+    echo "Encoding $label ($image) using $codec..." >&2
     
     rm -f $output
     
-    # Use CRF for quality control
-    if [ "$label" == "Optimized" ] || [ "$label" == "Generic1" ]; then
-        # For x265, use tiling to scale on high core counts
-        # We test both SVT-AV1 (current default) and x265 tiling if the user switches
-        # Since the current script is set to libsvtav1, we'll keep that, 
-        # but I'll provide a way to toggle or I'll implement a dual-codec test if needed.
-        # For now, the user asked to "Update" for x265 scaling. 
-        # I will modify the command to use libx265 with tiling for this run.
-        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -x265-params \"tiling-columns=4:tiling-rows=4\" -threads 0 -c:a copy /config/$output"
-    else
-        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -threads 0 -c:a copy /config/$output"
-    fi
-
-    # Use CRF for quality control
-    if [ "$label" == "Optimized" ] || [ "$label" == "Generic1" ]; then
-        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -x265-params \"tiling-columns=4:tiling-rows=4\" -threads 0 -c:a copy /config/$output"
-    else
-        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -threads 0 -c:a copy /config/$output"
-    fi
+    # Consistent command for all codecs using -threads 0 for max parallelism
+    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CRF -preset medium -threads 0 -c:a copy /config/$output"
 
     echo "Command: $CMD" >&2
     
@@ -104,16 +88,17 @@ verify_quality() {
 }
 
 echo "========================================================================"
-echo " FFmpeg Bitrate vs Quality Benchmark"
+echo " FFmpeg Codec Performance Benchmark"
 echo "========================================================================"
-echo "Images: $GENERIC_IMAGE_1, $GENERIC_IMAGE_2, $OPTIMIZED_IMAGE"
-echo "CRF Levels: ${CRF_VALUES[*]}"
+echo "Images: $GENERIC_IMAGE_1, $OPTIMIZED_IMAGE"
+echo "CRF: $CRF"
+echo "Codecs: ${CODECS[*]}"
 echo "------------------------------------------------------------------------"
 
 # Temporary file to store results
 RESULTS_FILE="results.tmp"
-echo "Image,CRF,Time,Size,PSNR,FPS" > $RESULTS_FILE
-echo "BestGenericTime,CRF,Time" > .best_gen.tmp
+echo "Image,Codec,Time,Size,PSNR,FPS" > $RESULTS_FILE
+echo "BestGenericTime,Codec,Time" > .best_gen.tmp
 
 IMAGES=("$GENERIC_IMAGE_1" "$OPTIMIZED_IMAGE")
 LABELS=("Generic1" "Optimized")
@@ -122,21 +107,21 @@ for idx in "${!IMAGES[@]}"; do
     IMAGE=${IMAGES[$idx]}
     LABEL=${LABELS[$idx]}
     
-    for CRF in "${CRF_VALUES[@]}"; do
+    for CODEC in "${CODECS[@]}"; do
         # Run encode
-        RES=$(run_benchmark "$IMAGE" "$LABEL" "$CRF")
+        RES=$(run_benchmark "$IMAGE" "$LABEL" "$CODEC")
         TIME=$(echo $RES | cut -d' ' -f1)
         SIZE=$(echo $RES | cut -d' ' -f2)
         FPS=$(echo $RES | cut -d' ' -f3)
         
         # Run quality check
-        TARGET="out_${LABEL}_crf${CRF}.mp4"
+        TARGET="out_${LABEL}_${CODEC}.mp4"
         SCORE=$(verify_quality $SAMPLE_FILE $TARGET "$LABEL")
         
-        echo "$LABEL,$CRF,$TIME,$SIZE,$SCORE,$FPS" >> $RESULTS_FILE
+        echo "$LABEL,$CODEC,$TIME,$SIZE,$SCORE,$FPS" >> $RESULTS_FILE
 
         if [ "$LABEL" != "Optimized" ]; then
-            echo "$LABEL,$CRF,$TIME" >> .best_gen.tmp
+            echo "$LABEL,$CODEC,$TIME" >> .best_gen.tmp
         fi
     done
 done
@@ -145,14 +130,14 @@ echo ""
 echo "=========================================================================================="
 echo " Final Comparison Summary"
 echo "=========================================================================================="
-printf "%-12s | %-5s | %-10s | %-10s | %-10s | %-10s\n" "Image" "CRF" "Time(s)" "Size(KB)" "PSNR(dB)" "FPS"
+printf "%-12s | %-12s | %-10s | %-10s | %-10s | %-10s\n" "Image" "Codec" "Time(s)" "Size(KB)" "PSNR(dB)" "FPS"
 echo "----------------------------------------------------------------------------------------------------------"
  
-while IFS=, read -r img crf time size psnr fps; do
+while IFS=, read -r img codec time size psnr fps; do
     if [ "$img" != "Image" ]; then
         # Format size with commas
         FORMATTED_SIZE=$(printf "%'d" "$size")
-        printf "%-12s | %-5s | %-10.2f | %-10s | %-10.2f | %-10.2f\n" "$img" "$crf" "$time" "$FORMATTED_SIZE" "$psnr" "$fps"
+        printf "%-12s | %-12s | %-10.2f | %-10s | %-10.2f | %-10.2f\n" "$img" "$codec" "$time" "$FORMATTED_SIZE" "$psnr" "$fps"
     fi
 done < $RESULTS_FILE
 
@@ -160,16 +145,16 @@ echo "--------------------------------------------------------------------------
 echo "Performance Improvement (Optimized vs Best Generic)"
 echo "----------------------------------------------------------------------------------------"
 
-for CRF in "${CRF_VALUES[@]}"; do
-    # Find the best (lowest) time among generics for this CRF
-    BEST_GEN=$(grep ",$CRF," .best_gen.tmp | cut -d',' -f3 | sort -n | head -n 1)
-    # Find optimized time for this CRF
-    OPT_TIME=$(grep "Optimized,$CRF," $RESULTS_FILE | cut -d',' -f3)
+for CODEC in "${CODECS[@]}"; do
+    # Find the best (lowest) time among generics for this codec
+    BEST_GEN=$(grep ",$CODEC," .best_gen.tmp | cut -d',' -f3 | sort -n | head -n 1)
+    # Find optimized time for this codec
+    OPT_TIME=$(grep "Optimized,$CODEC," $RESULTS_FILE | cut -d',' -f3)
     
     if [ ! -z "$BEST_GEN" ] && [ ! -z "$OPT_TIME" ]; then
         DIFF=$(echo "scale=2; $BEST_GEN - $OPT_TIME" | bc)
         PERC=$(echo "scale=2; ($DIFF / $BEST_GEN) * 100" | bc)
-        printf "  CRF %-2s: Speedup %-10.2f s (%s%% faster)\n" "$CRF" "$DIFF" "$(printf "%.2f" "$PERC")"
+        printf "  %-12s: Speedup %-10.2f s (%s%% faster)\n" "$CODEC" "$DIFF" "$(printf "%.2f" "$PERC")"
     fi
 done
 echo "========================================================================"
