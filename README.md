@@ -1,5 +1,7 @@
 # FFmpeg Ampere Neoverse-N1 Optimized Image
 
+This project was created by Some Watson with the assistance of opencode, an AI software engineering agent.
+
 This image provides a build of FFmpeg optimized specifically for the ARM Neoverse-N1 architecture, following the Ampere Computing tuning guidelines.
 
 **Source**: [Ampere FFmpeg Tuning Guide](https://amperecomputing.com/tuning-guides/FFmpeg-Tuning-Guide)
