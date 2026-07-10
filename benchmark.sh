@@ -34,7 +34,7 @@ run_benchmark() {
     rm -f $output
     
     # Consistent command for all codecs using -threads 0 for max parallelism
-    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CRF -preset medium -threads 0 -c:a copy /config/$output"
+    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CRF -preset slow -threads 0 -c:a copy /config/$output"
 
     echo "Command: $CMD" >&2
     
