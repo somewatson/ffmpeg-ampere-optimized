@@ -40,10 +40,12 @@ RUN export CFLAGS="-mcpu=neoverse-n1" && \
     make install
 
 # Build libvpx
-RUN cd /ffmpeg_sources && \
+RUN export CFLAGS="-mcpu=neoverse-n1" && \
+    export CXXFLAGS="-mcpu=neoverse-n1" && \
+    cd /ffmpeg_sources && \
     git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git && \
     cd libvpx && \
-    ./configure --prefix="/ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm --extra-cflags="-mcpu=neoverse-n1" --extra-cxxflags="-mcpu=neoverse-n1" && \
+    ./configure --prefix="/ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm && \
     make -j $(nproc) && \
     make install
 
