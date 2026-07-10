@@ -62,6 +62,28 @@ docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
   /media/output_av1.mp4
 ```
 
+## Benchmarks
+Performance comparison between a generic FFmpeg image and the optimized `ffmpeg-ampere-n1` image on Ampere Neoverse-N1 architecture.
+
+**Test Configuration:**
+- **Source**: `BigBuckBunny_512kb.mp4`
+- **Settings**: CRF 23, Preset Slow (or Preset 8 for SVT-AV1)
+- **Runtime**: `--ipc=host`, `--privileged`, `-threads 0`
+
+| Image | Codec | Time (s) | Size (KB) | PSNR (dB) | FPS |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Generic | libx264 | 51.92 | 26,092 | 41.36 | 285.00 |
+| **Optimized** | **libx264** | **51.03** | **26,092** | **41.36** | **285.00** |
+| Generic | libx265 | 375.37 | 30,936 | 42.69 | 38.00 |
+| **Optimized** | **libx265** | **294.91** | **31,108** | **42.63** | **49.00** |
+| Generic | libsvtav1 | 36.90 | 44,176 | 44.05 | 408.00 |
+| **Optimized** | **libsvtav1** | **28.11** | **44,200** | **44.06** | **527.00** |
+
+**Performance Improvement (Optimized vs Generic):**
+- **libx264**: 1.00% faster
+- **libx265**: 21.00% faster (Speedup: 80.46s)
+- **libsvtav1**: 23.00% faster (Speedup: 8.78s)
+
 ## Optimizations applied
 - Target CPU: `neoverse-n1`
 - Libraries: `libx264`, `libx265`, `libvpx`, `libsvtav1`
