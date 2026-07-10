@@ -12,6 +12,8 @@ Build the image from the local Dockerfile:
 docker build -t ffmpeg-ampere-n1 .
 ```
 
+**Note on High Core Counts**: This Dockerfile uses `$(nproc)` to maximize parallelism. On machines with a very high number of cores (e.g., 128+), ensure you have sufficient RAM (roughly 2GB per core) to avoid Out-Of-Memory (OOM) errors during compilation. If the build fails due to memory, you may need to limit the parallelism by replacing `$(nproc)` with a fixed number in the Dockerfile.
+
 ## Usage
 
 The image is configured with `ffmpeg` as the entrypoint.
