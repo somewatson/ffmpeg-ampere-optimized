@@ -49,20 +49,22 @@ docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
 ```
 
 ### AV1 Encoding
-Utilizing `libaom-av1` for high-efficiency encoding:
+Utilizing `libsvtav1` for high-performance, scalable encoding. 
+
+**Note**: This image uses `SVT-AV1` instead of the reference `libaom-av1` implementation. SVT-AV1 is specifically designed for massive multi-core parallelism, making it significantly faster and more efficient on high-core-count systems (e.g., 128+ cores).
 
 ```bash
 docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
   -i /media/input.mp4 \
-  -c:v libaom-av1 \
+  -c:v libsvtav1 \
   -crf 30 \
-  -b:v 0 \
+  -preset 6 \
   /media/output_av1.mp4
 ```
 
 ## Optimizations applied
 - Target CPU: `neoverse-n1`
-- Libraries: `libx264`, `libx265`, `libvpx`, `libaom`
+- Libraries: `libx264`, `libx265`, `libvpx`, `libsvtav1`
 - Compiler flags: `-mcpu=neoverse-n1` used across all build stages.
 
 ## Credits
