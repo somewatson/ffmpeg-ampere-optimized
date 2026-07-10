@@ -45,16 +45,25 @@ run_benchmark() {
         CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -threads 0 -c:a copy /config/$output"
     fi
 
+    # Use CRF for quality control
+    if [ "$label" == "Optimized" ] || [ "$label" == "Generic1" ]; then
+        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -x265-params \"tiling-columns=4:tiling-rows=4\" -threads 0 -c:a copy /config/$output"
+    else
+        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset medium -threads 0 -c:a copy /config/$output"
+    fi
+
     echo "Command: $CMD" >&2
     
+    LOG_FILE="ffmpeg_log.tmp"
     start_time=$(date +%s.%N)
-    eval $CMD > /dev/null 2>&1
+    eval $CMD > /dev/null 2> $LOG_FILE
     end_time=$(date +%s.%N)
     
     runtime=$(echo "scale=2; $end_time - $start_time" | bc)
     
-    # Calculate FPS
-    fps="0.00"
+    # Extract the last FPS value from the log
+    fps=$(grep -o "fps= [0-9.]*" $LOG_FILE | tail -n 1 | awk '{print $2}')
+    [ -z "$fps" ] && fps="0.00"
     
     # Get file size in KB
     if [ -f "$output" ]; then
@@ -63,7 +72,8 @@ run_benchmark() {
         size=0
     fi
     
-    echo "$runtime $size"
+    rm -f $LOG_FILE
+    echo "$runtime $size $fps"
 }
 
 verify_quality() {
@@ -102,7 +112,7 @@ echo "------------------------------------------------------------------------"
 
 # Temporary file to store results
 RESULTS_FILE="results.tmp"
-echo "Image,CRF,Time,Size,PSNR" > $RESULTS_FILE
+echo "Image,CRF,Time,Size,PSNR,FPS" > $RESULTS_FILE
 echo "BestGenericTime,CRF,Time" > .best_gen.tmp
 
 IMAGES=("$GENERIC_IMAGE_1" "$OPTIMIZED_IMAGE")
@@ -117,12 +127,13 @@ for idx in "${!IMAGES[@]}"; do
         RES=$(run_benchmark "$IMAGE" "$LABEL" "$CRF")
         TIME=$(echo $RES | cut -d' ' -f1)
         SIZE=$(echo $RES | cut -d' ' -f2)
+        FPS=$(echo $RES | cut -d' ' -f3)
         
         # Run quality check
         TARGET="out_${LABEL}_crf${CRF}.mp4"
         SCORE=$(verify_quality $SAMPLE_FILE $TARGET "$LABEL")
         
-        echo "$LABEL,$CRF,$TIME,$SIZE,$SCORE" >> $RESULTS_FILE
+        echo "$LABEL,$CRF,$TIME,$SIZE,$SCORE,$FPS" >> $RESULTS_FILE
 
         if [ "$LABEL" != "Optimized" ]; then
             echo "$LABEL,$CRF,$TIME" >> .best_gen.tmp
@@ -131,17 +142,17 @@ for idx in "${!IMAGES[@]}"; do
 done
 
 echo ""
-echo "========================================================================"
+echo "=========================================================================================="
 echo " Final Comparison Summary"
-echo "========================================================================"
-printf "%-12s | %-5s | %-10s | %-10s | %-10s\n" "Image" "CRF" "Time(s)" "Size(KB)" "PSNR(dB)"
-echo "----------------------------------------------------------------------------------------"
+echo "=========================================================================================="
+printf "%-12s | %-5s | %-10s | %-10s | %-10s | %-10s\n" "Image" "CRF" "Time(s)" "Size(KB)" "PSNR(dB)" "FPS"
+echo "----------------------------------------------------------------------------------------------------------"
  
 while IFS=, read -r img crf time size psnr fps; do
     if [ "$img" != "Image" ]; then
         # Format size with commas
         FORMATTED_SIZE=$(printf "%'d" "$size")
-        printf "%-12s | %-5s | %-10.2f | %-10s | %-10.2f\n" "$img" "$crf" "$time" "$FORMATTED_SIZE" "$psnr"
+        printf "%-12s | %-5s | %-10.2f | %-10s | %-10.2f | %-10.2f\n" "$img" "$crf" "$time" "$FORMATTED_SIZE" "$psnr" "$fps"
     fi
 done < $RESULTS_FILE
 
