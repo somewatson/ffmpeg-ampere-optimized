@@ -34,7 +34,7 @@ run_benchmark() {
     rm -f $output
     
     # Use CRF for quality control
-    CMD="docker run --rm --shm-size=2g --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset slow -c:a copy /config/$output"
+    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset slow -threads 0 -c:a copy /config/$output"
     echo "Command: $CMD" >&2
     
     start_time=$(date +%s.%N)
@@ -66,7 +66,7 @@ verify_quality() {
         return
     fi
 
-    CMD_PSNR="docker run --rm --shm-size=2g --privileged -v \"$(pwd):/config\" $GENERIC_IMAGE_1 -i /config/$target_file -i /config/$ref_file -filter_complex psnr -f null - 2>&1"
+    CMD_PSNR="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $GENERIC_IMAGE_1 -i /config/$target_file -i /config/$ref_file -filter_complex psnr -f null - 2>&1"
     PSNR=$(eval $CMD_PSNR | grep "average:" | sed 's/.*average:\([0-9.]*\).*/\1/')
     
     # Handle inf or empty results
