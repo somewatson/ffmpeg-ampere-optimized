@@ -25,10 +25,10 @@ docker run --rm ffmpeg-ampere-n1 -version
 ```
 
 ### Basic Transcoding
-To transcode a video file, mount your local media directory to the container:
+To transcode a video file, mount your local media directory to the container. We recommend using `--shm-size=2g` and `--privileged` for maximum performance on Ampere N1:
 
 ```bash
-docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
+docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
   -i /media/input.mp4 \
   -c:v libx264 \
   -preset medium \
@@ -41,7 +41,7 @@ docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
 Utilizing the optimized `libx265`:
 
 ```bash
-docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
+docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
   -i /media/input.mp4 \
   -c:v libx265 \
   -crf 28 \
@@ -52,7 +52,7 @@ docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
 Utilizing `libaom-av1` for high-efficiency encoding:
 
 ```bash
-docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
+docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
   -i /media/input.mp4 \
   -c:v libaom-av1 \
   -crf 30 \
