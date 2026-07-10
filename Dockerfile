@@ -113,7 +113,7 @@ COPY --from=builder /bin /bin
 COPY --from=builder /ffmpeg_build /ffmpeg_build
 
 ENV PATH="/bin:$PATH"
-ENV LD_LIBRARY_PATH="/ffmpeg_build/lib:$LD_LIBRARY_PATH"
+ENV LD_LIBRARY_PATH="/ffmpeg_build/lib"
 
 ENTRYPOINT ["ffmpeg"]
 CMD ["-version"]
