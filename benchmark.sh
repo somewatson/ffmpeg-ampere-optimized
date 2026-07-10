@@ -2,7 +2,7 @@
 
 # Benchmarking script for FFmpeg Docker containers: Bitrate vs Quality Analysis
 
-SAMPLE_URL="https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_30s.mp4"
+SAMPLE_URL="https://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4"
 SAMPLE_FILE="video.mp4"
 GENERIC_IMAGE_1="datarhei/ffmpeg"
 GENERIC_IMAGE_2="linuxserver/ffmpeg"
