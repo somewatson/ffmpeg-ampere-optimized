@@ -63,8 +63,8 @@ RUN export CFLAGS="-mcpu=native" && \
     make install
 
 # Build SVT-AV1
-RUN export CFLAGS="-mcpu=native -march=native" && \
-    export CXXFLAGS="-mcpu=native -march=native" && \
+RUN export CFLAGS="-mcpu=native -march=native -flto=auto" && \
+    export CXXFLAGS="-mcpu=native -march=native -flto=auto" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://gitlab.com/AOMediaCodec/SVT-AV1.git && \
     cd SVT-AV1 && \
