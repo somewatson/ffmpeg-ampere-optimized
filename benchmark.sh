@@ -10,7 +10,7 @@ OPTIMIZED_IMAGE="somewatson/ffmpeg-ampere-n1"
 CRF_VALUES=(23 28)
 
 # Get total frames from source file
-TOTAL_FRAMES=$(docker run --rm $GENERIC_IMAGE_1 -i $SAMPLE_FILE -vf null -f null - 2>&1 | grep -E "frame=|ffmpeg.progress" | tail -n 1 | grep -oE '"frame":[0-9]+|[fF]rame=[ ]*[0-9]+' | grep -oE '[0-9]+')
+TOTAL_FRAMES=""
 
 if [ -z "$TOTAL_FRAMES" ]; then
     echo "Warning: Could not detect total frames. FPS will be N/A." >&2
@@ -44,11 +44,7 @@ run_benchmark() {
     runtime=$(echo "scale=2; $end_time - $start_time" | bc)
     
     # Calculate FPS
-    if [ ! -z "$TOTAL_FRAMES" ] && [ "$TOTAL_FRAMES" != "0" ]; then
-        fps=$(echo "scale=2; $TOTAL_FRAMES / $runtime" | bc)
-    else
-        fps="0.00"
-    fi
+    fps="0.00"
     
     # Get file size in KB
     if [ -f "$output" ]; then
@@ -57,7 +53,7 @@ run_benchmark() {
         size=0
     fi
     
-    echo "$runtime $size $fps"
+    echo "$runtime $size"
 }
 
 verify_quality() {
@@ -96,7 +92,7 @@ echo "------------------------------------------------------------------------"
 
 # Temporary file to store results
 RESULTS_FILE="results.tmp"
-echo "Image,CRF,Time,Size,PSNR,FPS" > $RESULTS_FILE
+echo "Image,CRF,Time,Size,PSNR" > $RESULTS_FILE
 echo "BestGenericTime,CRF,Time" > .best_gen.tmp
 
 IMAGES=("$GENERIC_IMAGE_1" "$GENERIC_IMAGE_2" "$OPTIMIZED_IMAGE")
@@ -111,13 +107,12 @@ for idx in "${!IMAGES[@]}"; do
         RES=$(run_benchmark "$IMAGE" "$LABEL" "$CRF")
         TIME=$(echo $RES | cut -d' ' -f1)
         SIZE=$(echo $RES | cut -d' ' -f2)
-        FPS=$(echo $RES | cut -d' ' -f3)
         
         # Run quality check
         TARGET="out_${LABEL}_crf${CRF}.mp4"
         SCORE=$(verify_quality $SAMPLE_FILE $TARGET "$LABEL")
         
-        echo "$LABEL,$CRF,$TIME,$SIZE,$SCORE,$FPS" >> $RESULTS_FILE
+        echo "$LABEL,$CRF,$TIME,$SIZE,$SCORE" >> $RESULTS_FILE
 
         if [ "$LABEL" != "Optimized" ]; then
             echo "$LABEL,$CRF,$TIME" >> .best_gen.tmp
@@ -129,12 +124,14 @@ echo ""
 echo "========================================================================"
 echo " Final Comparison Summary"
 echo "========================================================================"
-printf "%-12s | %-5s | %-10s | %-10s | %-10s | %-10s\n" "Image" "CRF" "Time(s)" "Size(KB)" "PSNR(dB)" "FPS"
+printf "%-12s | %-5s | %-10s | %-10s | %-10s\n" "Image" "CRF" "Time(s)" "Size(KB)" "PSNR(dB)"
 echo "----------------------------------------------------------------------------------------"
-
+ 
 while IFS=, read -r img crf time size psnr fps; do
     if [ "$img" != "Image" ]; then
-        printf "%-12s | %-5s | %-10.2f | %-10s | %-10.2f | %-10.2f\n" "$img" "$crf" "$time" "$size" "$psnr" "$fps"
+        # Format size with commas
+        FORMATTED_SIZE=$(printf "%'d" "$size")
+        printf "%-12s | %-5s | %-10.2f | %-10s | %-10.2f\n" "$img" "$crf" "$time" "$FORMATTED_SIZE" "$psnr"
     fi
 done < $RESULTS_FILE
 
@@ -151,7 +148,7 @@ for CRF in "${CRF_VALUES[@]}"; do
     if [ ! -z "$BEST_GEN" ] && [ ! -z "$OPT_TIME" ]; then
         DIFF=$(echo "scale=2; $BEST_GEN - $OPT_TIME" | bc)
         PERC=$(echo "scale=2; ($DIFF / $BEST_GEN) * 100" | bc)
-        printf "  CRF %-2s: Speedup %-10s (%s%% faster)\n" "$CRF" "$DIFF s" "$PERC%"
+        printf "  CRF %-2s: Speedup %-10.2f s (%s%% faster)\n" "$CRF" "$DIFF" "$(printf "%.2f" "$PERC")"
     fi
 done
 echo "========================================================================"
