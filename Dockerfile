@@ -25,17 +25,17 @@ ENV PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig"
 RUN cd /ffmpeg_sources && \
     git clone --depth 1 https://code.videolan.org/videolan/x264.git && \
     cd x264 && \
-    ./configure --prefix="/ffmpeg_build" --bindir="/bin" --enable-static --enable-pic --extra-cflags="-mcpu=native" && \
+    ./configure --prefix="/ffmpeg_build" --bindir="/bin" --enable-static --enable-pic --extra-cflags="-mcpu=native -O3 -flto=auto" && \
     make -j $(nproc) && \
     make install
 
 # Build libx265
-RUN export CFLAGS="-mcpu=native" && \
-    export CXXFLAGS="-mcpu=native" && \
+RUN export CFLAGS="-mcpu=native -O3 -flto=auto" && \
+    export CXXFLAGS="-mcpu=native -O3 -flto=auto" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://bitbucket.org/multicoreware/x265_git.git x265 && \
     cd x265/build/linux && \
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_SVE=OFF -DCMAKE_C_FLAGS="-mcpu=native" -DCMAKE_CXX_FLAGS="-mcpu=native" ../../source && \
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_SVE=OFF -DCMAKE_C_FLAGS="-mcpu=native -O3 -flto=auto" -DCMAKE_CXX_FLAGS="-mcpu=native -O3 -flto=auto" ../../source && \
     cmake --build . -j $(nproc) && \
     make install && \
     mkdir -p /ffmpeg_build/lib/pkgconfig && \
@@ -63,8 +63,8 @@ RUN export CFLAGS="-mcpu=native" && \
     make install
 
 # Build SVT-AV1
-RUN export CFLAGS="-mcpu=native -march=native -flto=auto" && \
-    export CXXFLAGS="-mcpu=native -march=native -flto=auto" && \
+RUN export CFLAGS="-mcpu=native -flto=auto" && \
+    export CXXFLAGS="-mcpu=native -flto=auto" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://gitlab.com/AOMediaCodec/SVT-AV1.git && \
     cd SVT-AV1 && \
