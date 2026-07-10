@@ -62,16 +62,16 @@ RUN export CFLAGS="-mcpu=native" && \
     make -j $(nproc) && \
     make install
 
-# Build libaom
+# Build SVT-AV1
 RUN export CFLAGS="-mcpu=native" && \
     export CXXFLAGS="-mcpu=native" && \
     cd /ffmpeg_sources && \
-    git clone --depth 1 https://aomedia.googlesource.com/aom && \
-    mkdir -p aom_build && \
-    cd aom_build && \
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_TESTS=OFF -DENABLE_NASM=on ../aom && \
-    cmake --build . -j $(nproc) && \
+    git clone --depth 1 https://gitlab.com/AOMediaCodec/SVT-AV1.git && \
+    cd SVT-AV1/Build && \
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DCMAKE_BUILD_TYPE=Release ../bricks && \
+    make -j $(nproc) && \
     make install
+
 
 # Build FFmpeg
 RUN cd /ffmpeg_sources && \
@@ -90,7 +90,7 @@ RUN cd /ffmpeg_sources/ffmpeg && \
         --ld="g++" \
         --bindir="/bin" \
         --enable-gpl \
-        --enable-libaom \
+        --enable-libsvtav1 \
         --enable-libvpx \
         --enable-libx264 \
         --enable-libx265 \

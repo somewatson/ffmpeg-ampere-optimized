@@ -33,7 +33,7 @@ run_benchmark() {
     rm -f $output
     
     # Use CRF for quality control
-    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libaom-av1 -crf $crf -preset 6 -threads 0 -c:a copy /config/$output"
+    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libsvtav1 -crf $crf -preset 6 -threads 0 -c:a copy /config/$output"
     echo "Command: $CMD" >&2
     
     start_time=$(date +%s.%N)
