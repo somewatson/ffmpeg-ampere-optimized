@@ -85,9 +85,12 @@ Performance comparison between a generic FFmpeg image and the optimized `ffmpeg-
 - **libsvtav1**: 23.00% faster (Speedup: 8.78s)
 
 ## Optimizations applied
-- Target CPU: `neoverse-n1`
-- Libraries: `libx264`, `libx265`, `libvpx`, `libsvtav1`
-- Compiler flags: `-mcpu=neoverse-n1` used across all build stages.
+- **Target CPU**: `-mcpu=native` (Optimized for the host Ampere Neoverse-N1 architecture)
+- **Compiler Flags**:
+    - `-O3`: Maximum optimization level for performance.
+    - `-flto=auto`: Link-Time Optimization (LTO) to improve inter-procedural optimization.
+- **Libraries**: `libx264`, `libx265`, `libvpx`, `libsvtav1`
+- **Architecture**: Built specifically for ARM64 / Ampere N1.
 
 ## Credits
 This project was created by [Some Watson](https://somewatson.com/) with the assistance of opencode, an AI software engineering agent.
