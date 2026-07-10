@@ -48,6 +48,18 @@ docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
   /media/output_hevc.mp4
 ```
 
+### AV1 Encoding
+Utilizing `libaom-av1` for high-efficiency encoding:
+
+```bash
+docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
+  -i /media/input.mp4 \
+  -c:v libaom-av1 \
+  -crf 30 \
+  -b:v 0 \
+  /media/output_av1.mp4
+```
+
 ## Optimizations applied
 - Target CPU: `neoverse-n1`
 - Libraries: `libx264`, `libx265`, `libvpx`, `libaom`
