@@ -33,9 +33,8 @@ RUN cd /ffmpeg_sources && \
 RUN export CFLAGS="-mcpu=neoverse-n1" && \
     export CXXFLAGS="-mcpu=neoverse-n1" && \
     cd /ffmpeg_sources && \
-    wget -O x265.tar.bz2 https://bitbucket.org/multicoreware/x265_git/get/master.tar.bz2 && \
-    tar xjvf x265.tar.bz2 && \
-    cd multicoreware*/build/linux && \
+    git clone --depth 1 https://bitbucket.org/multicoreware/x265_git.git x265 && \
+    cd x265/build/linux && \
     cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_SHARED=off ../../source && \
     make -j $(nproc) && \
     make install
