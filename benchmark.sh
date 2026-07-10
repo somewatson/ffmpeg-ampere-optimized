@@ -51,8 +51,8 @@ run_benchmark() {
     
     runtime=$(echo "scale=2; $end_time - $start_time" | bc)
     
-    # Extract the last FPS value from the log
-    fps=$(grep -o "fps= [0-9.]*" $LOG_FILE | tail -n 1 | awk '{print $2}')
+    # Extract the last FPS value from the log (handle optional space after fps=)
+    fps=$(grep -o "fps=[ ]*[0-9.]*" $LOG_FILE | tail -n 1 | cut -d'=' -f2)
     [ -z "$fps" ] && fps="0.00"
     
     # Get file size in KB
