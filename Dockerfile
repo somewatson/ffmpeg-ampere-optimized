@@ -25,17 +25,17 @@ ENV PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig"
 RUN cd /ffmpeg_sources && \
     git clone --depth 1 https://code.videolan.org/videolan/x264.git && \
     cd x264 && \
-    ./configure --prefix="/ffmpeg_build" --bindir="/bin" --enable-static --enable-pic --extra-cflags="-mcpu=neoverse-n1" && \
+    ./configure --prefix="/ffmpeg_build" --bindir="/bin" --enable-static --enable-pic --extra-cflags="-mcpu=native" && \
     make -j $(nproc) && \
     make install
 
 # Build libx265
-RUN export CFLAGS="-mcpu=neoverse-n1" && \
-    export CXXFLAGS="-mcpu=neoverse-n1" && \
+RUN export CFLAGS="-mcpu=native" && \
+    export CXXFLAGS="-mcpu=native" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://bitbucket.org/multicoreware/x265_git.git x265 && \
     cd x265/build/linux && \
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_SVE=OFF ../../source && \
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_SVE=OFF -DCMAKE_C_FLAGS="-mcpu=native" -DCMAKE_CXX_FLAGS="-mcpu=native" ../../source && \
     cmake --build . -j $(nproc) && \
     make install && \
     mkdir -p /ffmpeg_build/lib/pkgconfig && \
@@ -53,8 +53,8 @@ Cflags: -I/ffmpeg_build/include
 EOF
 
 # Build libvpx
-RUN export CFLAGS="-mcpu=neoverse-n1" && \
-    export CXXFLAGS="-mcpu=neoverse-n1" && \
+RUN export CFLAGS="-mcpu=native" && \
+    export CXXFLAGS="-mcpu=native" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git && \
     cd libvpx && \
@@ -63,8 +63,8 @@ RUN export CFLAGS="-mcpu=neoverse-n1" && \
     make install
 
 # Build libaom
-RUN export CFLAGS="-mcpu=neoverse-n1" && \
-    export CXXFLAGS="-mcpu=neoverse-n1" && \
+RUN export CFLAGS="-mcpu=native" && \
+    export CXXFLAGS="-mcpu=native" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://aomedia.googlesource.com/aom && \
     mkdir -p aom_build && \
@@ -83,8 +83,8 @@ RUN cd /ffmpeg_sources/ffmpeg && \
     PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" ./configure \
         --prefix="/ffmpeg_build" \
         --pkg-config-flags="--static" \
-        --extra-cflags="-I/ffmpeg_build/include -mcpu=neoverse-n1" \
-        --extra-cxxflags="-mcpu=neoverse-n1" \
+        --extra-cflags="-I/ffmpeg_build/include -mcpu=native" \
+        --extra-cxxflags="-mcpu=native" \
         --extra-ldflags="-L/ffmpeg_build/lib" \
         --extra-libs="-lpthread -lm" \
         --ld="g++" \
