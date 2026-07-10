@@ -34,7 +34,7 @@ run_benchmark() {
     end_time=$(date +%s.%N)
     
     runtime=$(echo "$end_time - $start_time" | bc)
-    echo $runtime
+    echo "$runtime"
 }
 
 echo "----------------------------------------"
@@ -46,13 +46,14 @@ echo "Running $ITERATIONS iterations..."
 
 for i in $(seq 1 $ITERATIONS); do
     echo "Iteration $i..."
-    G_TIME=$(run_benchmark $GENERIC_IMAGE "Generic" $i)
-    O_TIME=$(run_benchmark $OPTIMIZED_IMAGE "Optimized" $i)
+    G_TIME=$(run_benchmark $GENERIC_IMAGE "Generic" $i | tail -n 1)
+    O_TIME=$(run_benchmark $OPTIMIZED_IMAGE "Optimized" $i | tail -n 1)
     
     echo "Generic: $G_TIME s | Optimized: $O_TIME s"
     GENERIC_TOTAL=$(echo "$GENERIC_TOTAL + $G_TIME" | bc)
     OPTIMIZED_TOTAL=$(echo "$OPTIMIZED_TOTAL + $O_TIME" | bc)
 done
+
 echo "----------------------------------------"
 
 GENERIC_AVG=$(echo "scale=3; $GENERIC_TOTAL / $ITERATIONS" | bc)
@@ -66,4 +67,4 @@ echo "Avg Optimized: $OPTIMIZED_AVG s"
 echo "Difference:    $DIFF s ($PERC% faster)"
 
 # Cleanup
-rm $SAMPLE_FILE out_Generic_*.mp4 out_Optimized_*.mp4
+rm -f $SAMPLE_FILE out_Generic_*.mp4 out_Optimized_*.mp4
