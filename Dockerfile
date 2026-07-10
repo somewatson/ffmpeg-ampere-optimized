@@ -35,7 +35,7 @@ RUN export CFLAGS="-mcpu=neoverse-n1" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://bitbucket.org/multicoreware/x265_git.git x265 && \
     cd x265/build/linux && \
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_SHARED=off ../../source && \
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_SVE=OFF ../../source && \
     cmake --build . -j $(nproc) && \
     make install
 
