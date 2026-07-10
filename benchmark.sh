@@ -10,11 +10,6 @@ CODECS=("libx264" "libx265" "libsvtav1")
 CRF=23
 
 # Get total frames from source file
-TOTAL_FRAMES=""
-
-if [ -z "$TOTAL_FRAMES" ]; then
-    echo "Warning: Could not detect total frames. FPS will be N/A." >&2
-fi
 
 curl -L $SAMPLE_URL -o $SAMPLE_FILE
 
