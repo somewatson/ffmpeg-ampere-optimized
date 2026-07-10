@@ -76,7 +76,9 @@ RUN export CFLAGS="-mcpu=neoverse-n1" && \
 RUN cd /ffmpeg_sources && \
     wget -O ffmpeg-snapshot.tar.bz2 https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 && \
     tar xjvf ffmpeg-snapshot.tar.bz2 && \
-    cd ffmpeg && \
+    cd ffmpeg
+
+RUN cd /ffmpeg_sources/ffmpeg && \
     PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" ./configure \
         --prefix="/ffmpeg_build" \
         --pkg-config-flags="--static" \
@@ -91,7 +93,9 @@ RUN cd /ffmpeg_sources && \
         --enable-libvpx \
         --enable-libx264 \
         --enable-libx265 \
-        --enable-nonfree && \
+        --enable-nonfree
+
+RUN cd /ffmpeg_sources/ffmpeg && \
     make -j $(nproc) && \
     make install
 
