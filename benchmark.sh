@@ -44,7 +44,9 @@ verify_quality() {
     local label=$3
     
     echo "Verifying quality for $label (PSNR vs Original)..." >&2
-    PSNR=$(docker run --rm -v "$(pwd):/config" $GENERIC_IMAGE_1 -i /config/$target_file -i /config/$ref_file -filter_complex psnr -f null - 2>&1 | grep "average:" | sed 's/.*average:\([0-9.]*\).*/\1/')
+    CMD_PSNR="docker run --rm -v \"$(pwd):/config\" $GENERIC_IMAGE_1 -i /config/$target_file -i /config/$ref_file -filter_complex psnr -f null - 2>&1"
+    echo "Command: $CMD_PSNR" >&2
+    PSNR=$(eval $CMD_PSNR | grep "average:" | sed 's/.*average:\([0-9.]*\).*/\1/')
     if [ -z "$PSNR" ] || [ "$PSNR" == "inf" ]; then
         PSNR="0"
     fi
