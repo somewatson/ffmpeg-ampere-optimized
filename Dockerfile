@@ -67,10 +67,10 @@ RUN export CFLAGS="-mcpu=native" && \
     export CXXFLAGS="-mcpu=native" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://gitlab.com/AOMediaCodec/SVT-AV1.git && \
-    cd SVT-AV1/Build && \
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DCMAKE_BUILD_TYPE=Release .. && \
-    make -j $(nproc) && \
-    make install
+    cd SVT-AV1 && \
+    cmake -B Bin/Release -S . -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DCMAKE_BUILD_TYPE="Release" && \
+    cmake --build Bin/Release -j && \
+    cmake --install Bin/Release
 
 
 # Build FFmpeg
