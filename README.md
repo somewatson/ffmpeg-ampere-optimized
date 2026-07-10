@@ -52,4 +52,4 @@ docker run --rm -v $(pwd):/media ffmpeg-ampere-n1 \
 - Compiler flags: `-mcpu=neoverse-n1` used across all build stages.
 
 ## Credits
-This project was created by Some Watson with the assistance of opencode, an AI software engineering agent.
+This project was created by [Some Watson](https://somewatson.com/) with the assistance of opencode, an AI software engineering agent.
