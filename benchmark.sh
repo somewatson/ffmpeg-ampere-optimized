@@ -10,7 +10,7 @@ OPTIMIZED_IMAGE="somewatson/ffmpeg-ampere-n1"
 CRF_VALUES=(23 28)
 
 # Get total frames from source file
-TOTAL_FRAMES=$(docker run --rm $GENERIC_IMAGE_1 -i $SAMPLE_FILE -vf null -f null - 2>&1 | grep "frame=" | tail -n 1 | awk -F'frame=' '{print $2}' | cut -d' ' -f1)
+TOTAL_FRAMES=$(docker run --rm $GENERIC_IMAGE_1 -i $SAMPLE_FILE -vf null -f null - 2>&1 | grep -E "frame=|ffmpeg.progress" | tail -n 1 | grep -oE '"frame":[0-9]+|[fF]rame=[ ]*[0-9]+' | grep -oE '[0-9]+')
 
 if [ -z "$TOTAL_FRAMES" ]; then
     echo "Warning: Could not detect total frames. FPS will be N/A." >&2
