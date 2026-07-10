@@ -66,7 +66,7 @@ RUN cd /ffmpeg_sources && \
     wget -O ffmpeg-snapshot.tar.bz2 https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 && \
     tar xjvf ffmpeg-snapshot.tar.bz2 && \
     cd ffmpeg && \
-    ./configure \
+    PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" ./configure \
         --prefix="/ffmpeg_build" \
         --pkg-config-flags="--static" \
         --extra-cflags="-I/ffmpeg_build/include -mcpu=neoverse-n1" \
