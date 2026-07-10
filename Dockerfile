@@ -79,8 +79,10 @@ RUN cd /ffmpeg_sources && \
     tar xjvf ffmpeg-snapshot.tar.bz2 && \
     cd ffmpeg
 
-RUN cd /ffmpeg_sources/ffmpeg && \
-    PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" ./configure \
+RUN ls -R /ffmpeg_build && \
+    PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" pkg-config --libs x265 && \
+    cd /ffmpeg_sources/ffmpeg && \
+    (PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" ./configure \
         --prefix="/ffmpeg_build" \
         --pkg-config-flags="--static" \
         --extra-cflags="-I/ffmpeg_build/include -mcpu=neoverse-n1" \
@@ -94,7 +96,7 @@ RUN cd /ffmpeg_sources/ffmpeg && \
         --enable-libvpx \
         --enable-libx264 \
         --enable-libx265 \
-        --enable-nonfree
+        --enable-nonfree) || (cat ffbuild/config.log && exit 1)
 
 RUN cd /ffmpeg_sources/ffmpeg && \
     make -j $(nproc) && \
