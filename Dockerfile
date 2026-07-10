@@ -38,17 +38,18 @@ RUN export CFLAGS="-mcpu=neoverse-n1" && \
     cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_SVE=OFF ../../source && \
     cmake --build . -j $(nproc) && \
     make install && \
+    mkdir -p /ffmpeg_build/lib/pkgconfig && \
     cat <<EOF > /ffmpeg_build/lib/pkgconfig/x265.pc
 prefix=/ffmpeg_build
-exec_prefix=\${prefix}
-libdir=\${exec_prefix}/lib
-includedir=\${prefix}/include
+exec_prefix=/ffmpeg_build
+libdir=/ffmpeg_build/lib
+includedir=/ffmpeg_build/include
 
 Name: x265
 Description: HEVC encoder
 Version: 0.0.0
-Libs: -L\${libdir} -lx265
-Cflags: -I\${includedir}
+Libs: -L/ffmpeg_build/lib -lx265
+Cflags: -I/ffmpeg_build/include
 EOF
 
 # Build libvpx
