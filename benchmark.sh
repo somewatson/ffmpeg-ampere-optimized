@@ -7,7 +7,7 @@ SAMPLE_FILE="video.mp4"
 GENERIC_IMAGE_1="datarhei/ffmpeg"
 GENERIC_IMAGE_2="linuxserver/ffmpeg"
 OPTIMIZED_IMAGE="somewatson/ffmpeg-ampere-n1"
-CRF_VALUES=(23 28)
+CRF_VALUES=(16 23)
 
 # Get total frames from source file
 TOTAL_FRAMES=""
@@ -34,7 +34,7 @@ run_benchmark() {
     rm -f $output
     
     # Use CRF for quality control
-    CMD="docker run --rm --shm-size=2g --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx264 -crf $crf -preset medium -c:a copy /config/$output"
+    CMD="docker run --rm --shm-size=2g --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v libx265 -crf $crf -preset slow -c:a copy /config/$output"
     echo "Command: $CMD" >&2
     
     start_time=$(date +%s.%N)
