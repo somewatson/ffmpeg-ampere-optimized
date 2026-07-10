@@ -4,8 +4,7 @@
 
 SAMPLE_URL="https://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4"
 SAMPLE_FILE="video.mp4"
-GENERIC_IMAGE_1="datarhei/ffmpeg"
-GENERIC_IMAGE_2="linuxserver/ffmpeg"
+GENERIC_IMAGE_1="linuxserver/ffmpeg"
 OPTIMIZED_IMAGE="somewatson/ffmpeg-ampere-n1"
 CRF_VALUES=(16 23)
 
@@ -95,8 +94,8 @@ RESULTS_FILE="results.tmp"
 echo "Image,CRF,Time,Size,PSNR" > $RESULTS_FILE
 echo "BestGenericTime,CRF,Time" > .best_gen.tmp
 
-IMAGES=("$GENERIC_IMAGE_1" "$GENERIC_IMAGE_2" "$OPTIMIZED_IMAGE")
-LABELS=("Generic1" "Generic2" "Optimized")
+IMAGES=("$GENERIC_IMAGE_1" "$OPTIMIZED_IMAGE")
+LABELS=("Generic1" "Optimized")
 
 for idx in "${!IMAGES[@]}"; do
     IMAGE=${IMAGES[$idx]}
