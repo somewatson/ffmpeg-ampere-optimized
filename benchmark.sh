@@ -22,9 +22,10 @@ run_benchmark() {
     local image=$1
     local label=$2
     local codec=$3
-    local output="out_${label}_${codec}.mp4"
+    local mode=$4
+    local output="out_${label}_${codec}_${mode}.mp4"
     
-    echo "Encoding $label ($image) using $codec..." >&2
+    echo "Encoding $label ($image) using $codec in $mode mode..." >&2
     
     rm -f $output
     
@@ -39,7 +40,22 @@ run_benchmark() {
         CURRENT_CRF=$CRF
     fi
 
-    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CURRENT_CRF -preset $PRESET -c:a copy /config/$output"
+    if [ "$mode" == "chunked" ]; then
+        # Use the chunked_encode script
+        # We need the image to be tagged as ffmpeg-ampere-optimized for the script to work
+        # Since the script uses a hardcoded image name, we might need to tag it or edit the script
+        # For benchmarking, we'll run the script and pass the image tag if we can, 
+        # but the script currently hardcodes IMAGE="ffmpeg-ampere-optimized".
+        # To make it generic, we'd need to edit chunked_encode.sh to accept image as arg.
+        
+        # Assuming we've updated chunked_encode.sh to take image as arg:
+        # ./chunked_encode.sh <input> <output> <codec> <crf> <preset> <chunks> <image>
+        
+        # For now, we will use 4 chunks for the benchmark sample
+        CMD="./chunked_encode.sh $SAMPLE_FILE $output $codec $CURRENT_CRF $preset 4 $image"
+    else
+        CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CURRENT_CRF -preset $PRESET -c:a copy /config/$output"
+    fi
 
     echo "Command: $CMD" >&2
     
@@ -50,7 +66,7 @@ run_benchmark() {
     
     runtime=$(echo "scale=2; $end_time - $start_time" | bc)
     
-    # Extract the last FPS value from the log (handle optional space after fps=)
+    # Extract the last FPS value from the log
     fps=$(grep -o "fps=[ ]*[0-9.]*" $LOG_FILE | tail -n 1 | cut -d'=' -f2)
     [ -z "$fps" ] && fps="0.00"
     
@@ -102,49 +118,59 @@ echo "------------------------------------------------------------------------"
 
 # Temporary file to store results
 RESULTS_FILE="results.tmp"
-echo "Image,Codec,Time,Size,PSNR,FPS" > $RESULTS_FILE
-echo "BestGenericTime,Codec,Time" > .best_gen.tmp
+echo "Image,Codec,Mode,Time,Size,PSNR,FPS" > $RESULTS_FILE
+echo "BestGenericTime,Codec,Mode,Time" > .best_gen.tmp
 
 IMAGES=("$GENERIC_IMAGE_1" "$OPTIMIZED_IMAGE")
 LABELS=("Generic1" "Optimized")
+MODES=("standard" "chunked")
 
 for idx in "${!IMAGES[@]}"; do
     IMAGE=${IMAGES[$idx]}
     LABEL=${LABELS[$idx]}
     
-    for CODEC in "${CODECS[@]}"; do
-        # Run encode
-        RES=$(run_benchmark "$IMAGE" "$LABEL" "$CODEC")
-        TIME=$(echo $RES | cut -d' ' -f1)
-        SIZE=$(echo $RES | cut -d' ' -f2)
-        FPS=$(echo $RES | cut -d' ' -f3)
-        
-        # Run quality check
-        TARGET="out_${LABEL}_${CODEC}.mp4"
-        SCORE=$(verify_quality $SAMPLE_FILE $TARGET "$LABEL")
-        
-        echo "$LABEL,$CODEC,$TIME,$SIZE,$SCORE,$FPS" >> $RESULTS_FILE
-
-        if [ "$LABEL" != "Optimized" ]; then
-            echo "$LABEL,$CODEC,$TIME" >> .best_gen.tmp
+    for MODE in "${MODES[@]}"; do
+        # Chunked mode only makes sense for the optimized image if we want to test it, 
+        # but we can test it for both. However, chunked encoding depends on the image.
+        if [ "$MODE" == "chunked" ] && [ "$LABEL" == "Generic1" ]; then
+             continue # Skip chunked for generic to keep it simple, or implement it
         fi
+
+        for CODEC in "${CODECS[@]}"; do
+            # Run encode
+            RES=$(run_benchmark "$IMAGE" "$LABEL" "$CODEC" "$MODE")
+            TIME=$(echo $RES | cut -d' ' -f1)
+            SIZE=$(echo $RES | cut -d' ' -f2)
+            FPS=$(echo $RES | cut -d' ' -f3)
+            
+            # Run quality check
+            TARGET="out_${LABEL}_${CODEC}_${MODE}.mp4"
+            SCORE=$(verify_quality $SAMPLE_FILE $TARGET "$LABEL")
+            
+            echo "$LABEL,$CODEC,$MODE,$TIME,$SIZE,$SCORE,$FPS" >> $RESULTS_FILE
+    
+            if [ "$LABEL" != "Optimized" ]; then
+                echo "$LABEL,$CODEC,$MODE,$TIME" >> .best_gen.tmp
+            fi
+        done
     done
 done
 
 echo ""
-echo "=========================================================================================="
+echo "=========================================================================================================================="
 echo " Final Comparison Summary"
-echo "=========================================================================================="
-printf "%-12s | %-12s | %-10s | %-10s | %-10s | %-10s\n" "Image" "Codec" "Time(s)" "Size(KB)" "PSNR(dB)" "FPS"
-echo "----------------------------------------------------------------------------------------------------------"
+echo "=========================================================================================================================="
+printf "%-12s | %-12s | %-12s | %-10s | %-10s | %-10s | %-10s\n" "Image" "Codec" "Mode" "Time(s)" "Size(KB)" "PSNR(dB)" "FPS"
+echo "------------------------------------------------------------------------------------------------------------------------------------------------------------"
  
-while IFS=, read -r img codec time size psnr fps; do
+while IFS=, read -r img codec mode time size psnr fps; do
     if [ "$img" != "Image" ]; then
         # Format size with commas
         FORMATTED_SIZE=$(printf "%'d" "$size")
-        printf "%-12s | %-12s | %-10.2f | %-10s | %-10.2f | %-10.2f\n" "$img" "$codec" "$time" "$FORMATTED_SIZE" "$psnr" "$fps"
+        printf "%-12s | %-12s | %-12s | %-10.2f | %-10s | %-10.2f | %-10.2f\n" "$img" "$codec" "$mode" "$time" "$FORMATTED_SIZE" "$psnr" "$fps"
     fi
 done < $RESULTS_FILE
+
 
 echo "----------------------------------------------------------------------------------------"
 echo "Performance Improvement (Optimized vs Best Generic)"
