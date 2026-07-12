@@ -22,26 +22,21 @@ ENCODED_DIR="$TEMP_DIR/encoded"
 mkdir -p "$SEGMENTS_DIR" "$ENCODED_DIR"
 
 echo "Step 1: Segmenting input into $CHUNKS chunks..."
-# Use ffmpeg to split input into segments without re-encoding
-docker run --rm -v "$(pwd):/config" $IMAGE -i "/config/$INPUT" -f segment -segment_time $(($(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$INPUT") / $CHUNKS)) -c copy "/config/$SEGMENTS_DIR/seg_%03d.mp4"
-
-# Wait, the above docker run might not work because SEGMENTS_DIR is inside /tmp. 
-# Let's use local paths for temporary files.
-# Redoing segmentation with local mount.
-
-# Corrected Segmentation
-docker run --rm -v "$TEMP_DIR:/tmp/chunks" $IMAGE -i "/config/$INPUT" -f segment -segment_time $(($(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$INPUT") / $CHUNKS)) -c copy "/tmp/chunks/seg_%03d.mp4" 2>/dev/null || \
-docker run --rm -v "$(pwd):/config" $IMAGE -i "/config/$INPUT" -f segment -segment_time $(( $(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$INPUT") / $CHUNKS )) -c copy "/config/$SEGMENTS_DIR/seg_%03d.mp4"
-
-# Let's simplify and use a local directory for chunks to avoid docker mount complexity
-# I'll use a local directory in the current workspace
+# Remove problematic early segmentation attempts
+# Jump directly to duration calculation using the corrected container call
 CHUNKS_DIR="chunks_tmp"
 ENCODED_DIR="encoded_tmp"
 mkdir -p "$CHUNKS_DIR" "$ENCODED_DIR"
 
-echo "Step 1: Segmenting input..."
-# Get duration
-DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$INPUT")
+# Get duration using ffprobe from within the container
+# Since ENTRYPOINT is ["ffmpeg"], we override it to call ffprobe
+DURATION=$(docker run --rm --entrypoint ffprobe -v "$(pwd):/config" $IMAGE -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "/config/$INPUT")
+
+if [ -z "$DURATION" ]; then
+    echo "Error: Could not determine duration of $INPUT. Ensure the image has ffprobe installed."
+    exit 1
+fi
+
 SEG_TIME=$(echo "$DURATION / $CHUNKS" | bc)
 
 docker run --rm -v "$(pwd):/config" $IMAGE -i "/config/$INPUT" -f segment -segment_time "$SEG_TIME" -c copy "/config/$CHUNKS_DIR/seg_%03d.mp4"
