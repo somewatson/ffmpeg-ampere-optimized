@@ -76,12 +76,8 @@ run_benchmark() {
     # Since Docker/FFmpeg buffers when not in a TTY, we can't easily force it without 'unbuffer' or 'script'.
     # We will use 'script' which fools FFmpeg into thinking it's in a TTY.
     
-    if command -v script >/dev/null 2>&1; then
-        # Force stderr to stdout, then use perl to handle \r updates and filter for fps/time
-        script -q -c "$CMD" /dev/null 2>&1 | tee $LOG_FILE | perl -pe 's/\r/\n/g' | perl -ne 'print if /fps=/ || /time=/'
-    else
-        eval $CMD 2>&1 | tee $LOG_FILE | perl -pe 's/\r/\n/g' | perl -ne 'print if /fps=/ || /time=/'
-    fi
+    # Use Python helper to filter \r updates and print only FPS/time in real-time
+    python3 /config/workspace/ffmpeg/ffmpeg_filter.py $LOG_FILE "$CMD"
     
     end_time=$(date +%s.%N)
     
