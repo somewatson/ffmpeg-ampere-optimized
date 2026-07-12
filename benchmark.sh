@@ -28,14 +28,18 @@ run_benchmark() {
     
     rm -f $output
     
-    # Handle preset differences between codecs (SVT-AV1 uses numeric presets)
     if [ "$codec" == "libsvtav1" ]; then
         PRESET="8"
+        CURRENT_CRF=30
+    elif [ "$codec" == "libx265" ]; then
+        PRESET="slow"
+        CURRENT_CRF=28
     else
         PRESET="slow"
+        CURRENT_CRF=$CRF
     fi
 
-    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CRF -preset $PRESET -c:a copy /config/$output"
+    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CURRENT_CRF -preset $PRESET -c:a copy /config/$output"
 
     echo "Command: $CMD" >&2
     
