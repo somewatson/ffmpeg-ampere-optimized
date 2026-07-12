@@ -92,32 +92,32 @@ PSNR (Peak Signal-to-Noise Ratio) measures reconstruction quality.
 ### Standard Mode
 | Image | Codec | Time (s) | Size (KB) | PSNR (dB) | FPS |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Generic | libx264 | 51.92 | 26,092 | 41.36 | 285.00 |
-| **Optimized** | **libx264** | **51.03** | **26,092** | **41.36** | **285.00** |
-| Generic | libx265 | 375.37 | 30,936 | 42.69 | 38.00 |
-| **Optimized** | **libx265** | **294.91** | **31,108** | **42.63** | **49.00** |
-| Generic | libsvtav1 | 36.90 | 44,176 | 44.05 | 408.00 |
-| **Optimized** | **libsvtav1** | **28.11** | **44,200** | **44.06** | **527.00** |
+| Generic | libx264 | 51.84 | 26,092 | 41.36 | 286.00 |
+| **Optimized** | **libx264** | **50.93** | **26,092** | **41.36** | **286.00** |
+| Generic | libx265 | 312.62 | 17,268 | 39.44 | 46.00 |
+| **Optimized** | **libx265** | **253.01** | **17,420** | **39.36** | **57.00** |
+| Generic | libsvtav1 | 36.62 | 29,188 | 41.94 | 412.00 |
+| **Optimized** | **libsvtav1** | **28.82** | **29,232** | **41.95** | **515.00** |
 
 **Standard Mode Performance Improvement:**
-- **libx264**: 1.00% faster
-- **libx265**: 21.00% faster (Speedup: 80.46s)
-- **libsvtav1**: 23.00% faster (Speedup: 8.78s)
+- **libx264**: 1.00% faster (Speedup: 0.91s)
+- **libx265**: 19.00% faster (Speedup: 59.61s)
+- **libsvtav1**: 21.00% faster (Speedup: 7.80s)
 
 ### Chunked Mode (Parallelism)
 | Image | Codec | Time (s) | Size (KB) | PSNR (dB) | FPS |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Generic | libx264 | 20.32 | 26,116 | 41.36 | 288.50 |
-| **Optimized** | **libx264** | **19.11** | **26,116** | **41.36** | **280.25** |
-| Generic | libx265 | 97.45 | 17,288 | 39.44 | 45.75 |
-| **Optimized** | **libx265** | **76.96** | **17,440** | **39.36** | **55.75** |
-| Generic | libsvtav1 | 15.91 | 29,224 | 41.94 | 393.00 |
-| **Optimized** | **libsvtav1** | **13.53** | **29,244** | **41.95** | **476.75** |
+| Generic | libx264 | 20.58 | 26,116 | 41.36 | 280.00 |
+| **Optimized** | **libx264** | **18.34** | **26,116** | **41.36** | **279.25** |
+| Generic | libx265 | 99.44 | 17,288 | 39.44 | 44.50 |
+| **Optimized** | **libx265** | **77.57** | **17,440** | **39.36** | **56.00** |
+| Generic | libsvtav1 | 15.82 | 29,224 | 41.94 | 391.75 |
+| **Optimized** | **libsvtav1** | **13.57** | **29,244** | **41.95** | **475.50** |
 
 **Chunked Mode Performance Improvement:**
-- **libx264**: 5.00% faster (Speedup: 1.21s)
-- **libx265**: 21.00% faster (Speedup: 20.49s)
-- **libsvtav1**: 14.00% faster (Speedup: 2.39s)
+- **libx264**: 10.00% faster (Speedup: 2.24s)
+- **libx265**: 21.00% faster (Speedup: 21.87s)
+- **libsvtav1**: 14.00% faster (Speedup: 2.25s)
 
 ## Optimizations applied
 - **Target CPU**: `-mcpu=neoverse-n1` (Optimized for the Ampere Neoverse-N1 architecture)
