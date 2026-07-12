@@ -95,7 +95,6 @@ run_benchmark() {
     rm -f $LOG_FILE
     echo "$runtime $size $fps" > .last_res.tmp
 }
-}
 
 verify_quality() {
     local ref_file=$1
