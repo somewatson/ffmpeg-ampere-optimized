@@ -67,7 +67,11 @@ run_benchmark() {
     
     LOG_FILE="ffmpeg_log.tmp"
     start_time=$(date +%s.%N)
-    eval $CMD > /dev/null 2> $LOG_FILE
+    
+    # Run command and pipe output to both a file (for stats) and the terminal (for real-time progress)
+    # Use stdbuf to avoid buffering
+    eval $CMD 2>&1 | tee $LOG_FILE
+    
     end_time=$(date +%s.%N)
     
     runtime=$(echo "scale=2; $end_time - $start_time" | bc)
@@ -76,7 +80,12 @@ run_benchmark() {
     fps=$(grep -o "fps=[ ]*[0-9.]*" $LOG_FILE | tail -n 1 | cut -d'=' -f2)
     [ -z "$fps" ] && fps="0.00"
     
+    echo ""
+    echo ">> Result: Runtime: ${runtime}s | FPS: ${fps}" >&2
+    echo "------------------------------------------------------------------------" >&2
+    
     # Get file size in KB
+
     if [ -f "$output" ]; then
         size=$(du -k "$output" | cut -f1)
     else
@@ -181,18 +190,21 @@ echo "--------------------------------------------------------------------------
 echo "Performance Improvement (Optimized vs Best Generic)"
 echo "----------------------------------------------------------------------------------------"
 
-for CODEC in "${CODECS[@]}"; do
-    # Find the best (lowest) time among generics for this codec across any mode present in results
-    # We match the mode of the Optimized run for the same codec
-    OPT_MODE=$(grep "Optimized,$CODEC," $RESULTS_FILE | cut -d',' -f3 | head -n 1)
-    OPT_TIME=$(grep "Optimized,$CODEC,$OPT_MODE" $RESULTS_FILE | cut -d',' -f4)
-    BEST_GEN=$(grep ",$CODEC,$OPT_MODE," .best_gen.tmp | cut -d',' -f4 | sort -n | head -n 1)
-    
-    if [ ! -z "$BEST_GEN" ] && [ ! -z "$OPT_TIME" ]; then
-        DIFF=$(echo "scale=2; $BEST_GEN - $OPT_TIME" | bc)
-        PERC=$(echo "scale=2; ($DIFF / $BEST_GEN) * 100" | bc)
-        printf "  %-12s (%-8s): Speedup %-10.2f s (%s%% faster)\n" "$CODEC" "$OPT_MODE" "$DIFF" "$(printf "%.2f" "$PERC")"
-    fi
+for MODE in "${MODES[@]}"; do
+    echo "Mode: $MODE"
+    for CODEC in "${CODECS[@]}"; do
+        # Find the time for the Optimized run in this specific mode
+        OPT_TIME=$(grep "Optimized,$CODEC,$MODE" $RESULTS_FILE | cut -d',' -f4)
+        # Find the best (lowest) time among generics for this codec in this specific mode
+        BEST_GEN=$(grep ",$CODEC,$MODE," .best_gen.tmp | cut -d',' -f4 | sort -n | head -n 1)
+        
+        if [ ! -z "$BEST_GEN" ] && [ ! -z "$OPT_TIME" ]; then
+            DIFF=$(echo "scale=2; $BEST_GEN - $OPT_TIME" | bc)
+            PERC=$(echo "scale=2; ($DIFF / $BEST_GEN) * 100" | bc)
+            printf "  %-12s: Speedup %-10.2f s (%s%% faster)\n" "$CODEC" "$DIFF" "$(printf "%.2f" "$PERC")"
+        fi
+    done
+    echo ""
 done
 echo "========================================================================"
 
