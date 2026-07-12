@@ -54,8 +54,22 @@ if [ "$CONCURRENT_JOBS" -lt 1 ]; then CONCURRENT_JOBS=1; fi
 
 echo "Running with $CONCURRENT_JOBS concurrent instances..."
 
+# Helper function for encoding
+encode_chunk() {
+    local seg=$1
+    local codec=$2
+    local crf=$3
+    local preset=$4
+    local image=$5
+    local base=$(basename "$seg")
+    local out="encoded_tmp/enc_$base"
+    
+    docker run --rm --ipc=host --privileged -v "$(pwd):/config" "$image" -i "/config/$seg" -c:v "$codec" -crf "$crf" -preset "$preset" -c:a copy "/config/$out"
+}
+
 # Use GNU Parallel if available, otherwise a simple loop with backgrounding
 if command -v parallel >/dev/null 2>&1; then
+    export -f encode_chunk
     parallel -j "$CONCURRENT_JOBS" encode_chunk {} "$CODEC" "$CRF" "$PRESET" "$IMAGE" ::: $SEGMENTS
 else
     # Fallback to manual backgrounding with limit
