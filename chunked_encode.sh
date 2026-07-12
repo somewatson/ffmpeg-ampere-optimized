@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-# Usage: ./chunked_encode.sh <input_file> <output_file> <codec> <crf> <preset> <chunks> <image>
-if [ "$#" -ne 7 ]; then
-    echo "Usage: $0 <input_file> <output_file> <codec> <crf> <preset> <chunks> <image>"
-    echo "Example: $0 input.mp4 output.mp4 libx265 28 slow 10 ffmpeg-ampere-optimized"
+# Usage: ./chunked_encode.sh <input_file> <output_file> <codec> <crf> <preset> <chunks> [image]
+if [ "$#" -lt 6 ]; then
+    echo "Usage: $0 <input_file> <output_file> <codec> <crf> <preset> <chunks> [image]"
+    echo "Example: $0 input.mp4 output.mp4 libx265 28 slow 10 somewatson/ffmpeg-ampere-n1"
     exit 1
 fi
 
@@ -14,7 +14,7 @@ CODEC=$3
 CRF=$4
 PRESET=$5
 CHUNKS=$6
-IMAGE=$7
+IMAGE=${7:-"somewatson/ffmpeg-ampere-n1"}
 
 TEMP_DIR=$(mktemp -d)
 SEGMENTS_DIR="$TEMP_DIR/segments"
