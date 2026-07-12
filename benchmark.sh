@@ -70,13 +70,25 @@ run_benchmark() {
     
     # Run command and pipe output to both a file (for stats) and a filtered stream for the terminal
     # We use a subshell to ensure the output is not buffered and the grep works as expected
-    # Run command and pipe output to both a file (for stats) and the terminal
-    # Use a while loop to force immediate printing of matching lines
-    eval $CMD 2>&1 | tee $LOG_FILE | while read -r line; do
-        if [[ "$line" == *"fps="* ]] || [[ "$line" == *"time="* ]]; then
-            echo "$line"
-        fi
-    done
+    # Run command. 
+    # We use a subshell and 'tee' to capture logs.
+    # To prevent buffering, we use a loop and redirect stderr to stdout.
+    # Since Docker/FFmpeg buffers when not in a TTY, we can't easily force it without 'unbuffer' or 'script'.
+    # We will use 'script' which fools FFmpeg into thinking it's in a TTY.
+    
+    if command -v script >/dev/null 2>&1; then
+        script -q -c "$CMD" /dev/null 2>&1 | tee $LOG_FILE | while read -r line; do
+            if [[ "$line" == *"fps="* ]] || [[ "$line" == *"time="* ]]; then
+                echo "$line"
+            fi
+        done
+    else
+        eval $CMD 2>&1 | tee $LOG_FILE | while read -r line; do
+            if [[ "$line" == *"fps="* ]] || [[ "$line" == *"time="* ]]; then
+                echo "$line"
+            fi
+        done
+    fi
     
     end_time=$(date +%s.%N)
     
