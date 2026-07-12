@@ -69,8 +69,9 @@ run_benchmark() {
     start_time=$(date +%s.%N)
     
     # Run command and pipe output to both a file (for stats) and a filtered stream for the terminal
-    # We filter for lines containing 'fps=' or 'time=' to keep the output clean
-    eval $CMD 2>&1 | tee $LOG_FILE | grep --line-buffered -E "fps=|time="
+    # We use a subshell to ensure the output is not buffered and the grep works as expected
+    # Use stdbuf to force line buffering for the command, tee, and grep
+    stdbuf -oL eval $CMD 2>&1 | stdbuf -oL tee $LOG_FILE | stdbuf -oL grep --line-buffered -E "fps=|time="
     
     end_time=$(date +%s.%N)
     
