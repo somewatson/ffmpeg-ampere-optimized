@@ -78,11 +78,18 @@
   ## Benchmarks
   Performance comparison between a generic FFmpeg image and the optimized `ffmpeg-ampere-n1` image on Ampere Neoverse-N1 architecture.
 
+  **Quality Metric (PSNR):**
+  PSNR (Peak Signal-to-Noise Ratio) measures reconstruction quality. 
+  - **> 40 dB**: Excellent (imperceptible difference from source)
+  - **30-40 dB**: Good to Very Good
+  - **< 30 dB**: Noticeable quality loss
+
   **Test Configuration:**
   - **Source**: `BigBuckBunny_512kb.mp4`
   - **Settings**: CRF 23, Preset Slow (or Preset 8 for SVT-AV1)
   - **Runtime**: `--ipc=host`, `--privileged`
 
+  ### Standard Mode
   | Image | Codec | Time (s) | Size (KB) | PSNR (dB) | FPS |
   | :--- | :--- | :--- | :--- | :--- | :--- |
   | Generic | libx264 | 51.92 | 26,092 | 41.36 | 285.00 |
@@ -92,10 +99,25 @@
   | Generic | libsvtav1 | 36.90 | 44,176 | 44.05 | 408.00 |
   | **Optimized** | **libsvtav1** | **28.11** | **44,200** | **44.06** | **527.00** |
 
-  **Performance Improvement (Optimized vs Generic):**
+  **Standard Mode Performance Improvement:**
   - **libx264**: 1.00% faster
   - **libx265**: 21.00% faster (Speedup: 80.46s)
   - **libsvtav1**: 23.00% faster (Speedup: 8.78s)
+
+  ### Chunked Mode (Parallelism)
+  | Image | Codec | Time (s) | Size (KB) | PSNR (dB) | FPS |
+  | :--- | :--- | :--- | :--- | :--- | :--- |
+  | Generic | libx264 | 20.32 | 26,116 | 41.36 | 288.50 |
+  | **Optimized** | **libx264** | **19.11** | **26,116** | **41.36** | **280.25** |
+  | Generic | libx265 | 97.45 | 17,288 | 39.44 | 45.75 |
+  | **Optimized** | **libx265** | **76.96** | **17,440** | **39.36** | **55.75** |
+  | Generic | libsvtav1 | 15.91 | 29,224 | 41.94 | 393.00 |
+  | **Optimized** | **libsvtav1** | **13.53** | **29,244** | **41.95** | **476.75** |
+
+  **Chunked Mode Performance Improvement:**
+  - **libx264**: 5.00% faster (Speedup: 1.21s)
+  - **libx265**: 21.00% faster (Speedup: 20.49s)
+  - **libsvtav1**: 14.00% faster (Speedup: 2.39s)
 
   ## Optimizations applied
   - **Target CPU**: `-mcpu=neoverse-n1` (Optimized for the Ampere Neoverse-N1 architecture)
