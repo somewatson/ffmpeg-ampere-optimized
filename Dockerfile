@@ -58,7 +58,7 @@ RUN export CFLAGS="-mcpu=neoverse-n1 -flto=auto" && \
     cd /ffmpeg_sources && \
     git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git && \
     cd libvpx && \
-    ./configure --prefix="/ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm && \
+    ./configure --prefix="/ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm --enable-mastering && \
     make -j $(nproc) && \
     make install
 
