@@ -77,7 +77,7 @@ run_benchmark() {
     # We will use 'script' which fools FFmpeg into thinking it's in a TTY.
     
     # Use Python helper to filter \r updates and print only FPS/time in real-time
-    python3 /config/workspace/ffmpeg/ffmpeg_filter.py $LOG_FILE "$CMD"
+    python3 ./ffmpeg_filter.py $LOG_FILE "$CMD"
     
     end_time=$(date +%s.%N)
     
