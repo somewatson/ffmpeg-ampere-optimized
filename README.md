@@ -48,6 +48,20 @@ docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
   /media/output_hevc.mp4
 ```
 
+### AV1 Encoding
+Utilizing `libsvtav1` for high-performance, scalable encoding. 
+
+**Note**: This image uses `SVT-AV1` instead of the reference `libaom-av1` implementation. SVT-AV1 is specifically designed for massive multi-core parallelism, making it significantly faster and more efficient on high-core-count systems (e.g., 128+ cores).
+
+```bash
+docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
+  -i /media/input.mp4 \
+  -c:v libsvtav1 \
+  -crf 30 \
+  -preset 6 \
+  /media/output_av1.mp4
+```
+
 ## Large-Scale Encoding (Chunked Parallelism)
 
 For maximum throughput on high-core-count systems, use chunked encoding. This process splits the input into segments, encodes them in parallel across multiple FFmpeg instances, and concatenates the results.
