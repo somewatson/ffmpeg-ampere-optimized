@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary benchmark files
+*.tmp
+out_*.mp4
+ffmpeg_log.tmp
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,7 @@
+# Ignore benchmark output and temp files during build
+out_*.mp4
+*.tmp
+ffmpeg_log.tmp
+.last_res.tmp
+.best_gen.tmp
+results.tmp
