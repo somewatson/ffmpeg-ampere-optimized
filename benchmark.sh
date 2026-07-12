@@ -68,9 +68,9 @@ run_benchmark() {
     LOG_FILE="ffmpeg_log.tmp"
     start_time=$(date +%s.%N)
     
-    # Run command and pipe output to both a file (for stats) and the terminal (for real-time progress)
-    # Use stdbuf to avoid buffering
-    eval $CMD 2>&1 | tee $LOG_FILE
+    # Run command and pipe output to both a file (for stats) and a filtered stream for the terminal
+    # We filter for lines containing 'fps=' or 'time=' to keep the output clean
+    eval $CMD 2>&1 | tee $LOG_FILE | grep --line-buffered -E "fps=|time="
     
     end_time=$(date +%s.%N)
     
