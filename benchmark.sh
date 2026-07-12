@@ -35,7 +35,7 @@ run_benchmark() {
         PRESET="slow"
     fi
 
-    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CRF -preset $PRESET -threads 0 -c:a copy /config/$output"
+    CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CRF -preset $PRESET -c:a copy /config/$output"
 
     echo "Command: $CMD" >&2
     
