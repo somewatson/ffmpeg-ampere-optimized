@@ -68,7 +68,7 @@ Performance comparison between a generic FFmpeg image and the optimized `ffmpeg-
 **Test Configuration:**
 - **Source**: `BigBuckBunny_512kb.mp4`
 - **Settings**: CRF 23, Preset Slow (or Preset 8 for SVT-AV1)
-- **Runtime**: `--ipc=host`, `--privileged`, `-threads 0`
+- **Runtime**: `--ipc=host`, `--privileged`
 
 | Image | Codec | Time (s) | Size (KB) | PSNR (dB) | FPS |
 | :--- | :--- | :--- | :--- | :--- | :--- |
