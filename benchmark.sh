@@ -77,10 +77,10 @@ run_benchmark() {
     # We will use 'script' which fools FFmpeg into thinking it's in a TTY.
     
     if command -v script >/dev/null 2>&1; then
-        # Use perl to filter the \r stream and print only the FPS/time updates in real-time
-        script -q -c "$CMD" /dev/null 2>&1 | tee $LOG_FILE | perl -pe 's/(.*(fps=.*|time=.*)).*/\1\n/g' | perl -ne 'print if /fps=/ || /time=/'
+        # Force stderr to stdout, then use perl to handle \r updates and filter for fps/time
+        script -q -c "$CMD" /dev/null 2>&1 | tee $LOG_FILE | perl -pe 's/\r/\n/g' | perl -ne 'print if /fps=/ || /time=/'
     else
-        eval $CMD 2>&1 | tee $LOG_FILE | perl -pe 's/(.*(fps=.*|time=.*)).*/\1\n/g' | perl -ne 'print if /fps=/ || /time=/'
+        eval $CMD 2>&1 | tee $LOG_FILE | perl -pe 's/\r/\n/g' | perl -ne 'print if /fps=/ || /time=/'
     fi
     
     end_time=$(date +%s.%N)
