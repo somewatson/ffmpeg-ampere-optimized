@@ -93,7 +93,8 @@ run_benchmark() {
     fi
     
     rm -f $LOG_FILE
-    echo "$runtime $size $fps"
+    echo "$runtime $size $fps" > .last_res.tmp
+}
 }
 
 verify_quality() {
@@ -152,7 +153,10 @@ for idx in "${!IMAGES[@]}"; do
         
         for CODEC in "${CODECS[@]}"; do
             # Run encode
-            RES=$(run_benchmark "$IMAGE" "$LABEL" "$CODEC" "$MODE")
+            run_benchmark "$IMAGE" "$LABEL" "$CODEC" "$MODE"
+            
+            # Read results from temporary file
+            RES=$(cat .last_res.tmp)
             TIME=$(echo $RES | cut -d' ' -f1)
             SIZE=$(echo $RES | cut -d' ' -f2)
             FPS=$(echo $RES | cut -d' ' -f3)
@@ -209,4 +213,4 @@ done
 echo "========================================================================"
 
 # Cleanup
-rm -f $SAMPLE_FILE out_*.mp4 $RESULTS_FILE .best_gen.tmp
+rm -f $SAMPLE_FILE out_*.mp4 $RESULTS_FILE .best_gen.tmp .last_res.tmp
