@@ -38,14 +38,12 @@ docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
 ```
 
 ### H.265 (HEVC) Encoding
-Utilizing the optimized `libx265`. For high-core count systems (128+ cores), we highly recommend using `numactl --interleave=all` to prevent memory bottlenecks and `-x265-params "pools=8"` to optimize threading.
+Utilizing the optimized `libx265`:
 
 ```bash
 docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
-  numactl --interleave=all ffmpeg \
   -i /media/input.mp4 \
   -c:v libx265 \
-  -x265-params "pools=8:frame-threads=4" \
   -crf 28 \
   /media/output_hevc.mp4
 ```
