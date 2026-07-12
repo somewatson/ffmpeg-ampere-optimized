@@ -112,7 +112,7 @@ echo "========================================================================"
 echo " FFmpeg Codec Performance Benchmark"
 echo "========================================================================"
 echo "Images: $GENERIC_IMAGE_1, $OPTIMIZED_IMAGE"
-echo "CRF: $CRF"
+echo "CRF Values: libx264=$CRF, libx265=28, libsvtav1=30"
 echo "Codecs: ${CODECS[*]}"
 echo "------------------------------------------------------------------------"
 
