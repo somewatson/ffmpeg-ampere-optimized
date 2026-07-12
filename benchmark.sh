@@ -182,15 +182,16 @@ echo "Performance Improvement (Optimized vs Best Generic)"
 echo "----------------------------------------------------------------------------------------"
 
 for CODEC in "${CODECS[@]}"; do
-    # Find the best (lowest) time among generics for this codec
-    BEST_GEN=$(grep ",$CODEC," .best_gen.tmp | cut -d',' -f3 | sort -n | head -n 1)
-    # Find optimized time for this codec
-    OPT_TIME=$(grep "Optimized,$CODEC," $RESULTS_FILE | cut -d',' -f3)
+    # Find the best (lowest) time among generics for this codec across any mode present in results
+    # We match the mode of the Optimized run for the same codec
+    OPT_MODE=$(grep "Optimized,$CODEC," $RESULTS_FILE | cut -d',' -f3 | head -n 1)
+    OPT_TIME=$(grep "Optimized,$CODEC,$OPT_MODE" $RESULTS_FILE | cut -d',' -f4)
+    BEST_GEN=$(grep ",$CODEC,$OPT_MODE," .best_gen.tmp | cut -d',' -f4 | sort -n | head -n 1)
     
     if [ ! -z "$BEST_GEN" ] && [ ! -z "$OPT_TIME" ]; then
         DIFF=$(echo "scale=2; $BEST_GEN - $OPT_TIME" | bc)
         PERC=$(echo "scale=2; ($DIFF / $BEST_GEN) * 100" | bc)
-        printf "  %-12s: Speedup %-10.2f s (%s%% faster)\n" "$CODEC" "$DIFF" "$(printf "%.2f" "$PERC")"
+        printf "  %-12s (%-8s): Speedup %-10.2f s (%s%% faster)\n" "$CODEC" "$OPT_MODE" "$DIFF" "$(printf "%.2f" "$PERC")"
     fi
 done
 echo "========================================================================"
