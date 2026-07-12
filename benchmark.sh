@@ -2,6 +2,12 @@
 
 # Benchmarking script for FFmpeg Docker containers: Codec Performance Comparison
 
+# Usage: ./benchmark.sh [--chunked-only]
+CHUNKED_ONLY=false
+if [ "$1" == "--chunked-only" ]; then
+    CHUNKED_ONLY=true
+fi
+
 SAMPLE_URL="https://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4"
 SAMPLE_FILE="video.mp4"
 GENERIC_IMAGE_1="linuxserver/ffmpeg"
@@ -52,7 +58,7 @@ run_benchmark() {
         # ./chunked_encode.sh <input> <output> <codec> <crf> <preset> <chunks> <image>
         
         # For now, we will use 4 chunks for the benchmark sample
-        CMD="./chunked_encode.sh $SAMPLE_FILE $output $codec $CURRENT_CRF $preset 4 $image"
+        CMD="./chunked_encode.sh $SAMPLE_FILE $output $codec $CURRENT_CRF $PRESET 4 $image"
     else
         CMD="docker run --rm --ipc=host --privileged -v \"$(pwd):/config\" $image -i /config/$SAMPLE_FILE -c:v $codec -crf $CURRENT_CRF -preset $PRESET -c:a copy /config/$output"
     fi
@@ -130,6 +136,11 @@ for idx in "${!IMAGES[@]}"; do
     LABEL=${LABELS[$idx]}
     
     for MODE in "${MODES[@]}"; do
+        # Skip standard mode if --chunked-only is specified
+        if [ "$CHUNKED_ONLY" = true ] && [ "$MODE" == "standard" ]; then
+             continue
+        fi
+
         # Chunked mode only makes sense for the optimized image if we want to test it, 
         # but we can test it for both. However, chunked encoding depends on the image.
         if [ "$MODE" == "chunked" ] && [ "$LABEL" == "Generic1" ]; then
