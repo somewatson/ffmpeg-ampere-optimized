@@ -77,7 +77,9 @@ run_benchmark() {
     # We will use 'script' which fools FFmpeg into thinking it's in a TTY.
     
     if command -v script >/dev/null 2>&1; then
-        script -q -c "$CMD" /dev/null 2>&1 | tee $LOG_FILE | while read -r line; do
+        # Use script to create a PTY, fooling FFmpeg into not buffering.
+        # We use a subshell to ensure everything is captured and piped.
+        (script -q -c "$CMD" /dev/null 2>&1) | tee $LOG_FILE | while read -r line; do
             if [[ "$line" == *"fps="* ]] || [[ "$line" == *"time="* ]]; then
                 echo "$line"
             fi
