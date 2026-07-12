@@ -70,9 +70,13 @@ run_benchmark() {
     
     # Run command and pipe output to both a file (for stats) and a filtered stream for the terminal
     # We use a subshell to ensure the output is not buffered and the grep works as expected
-    # Run command and pipe output to both a file (for stats) and a filtered stream for the terminal
-    # We avoid stdbuf on 'eval' as it can interfere with how the shell handles the command string
-    eval $CMD 2>&1 | tee $LOG_FILE | grep --line-buffered -E "fps=|time="
+    # Run command and pipe output to both a file (for stats) and the terminal
+    # Use a while loop to force immediate printing of matching lines
+    eval $CMD 2>&1 | tee $LOG_FILE | while read -r line; do
+        if [[ "$line" == *"fps="* ]] || [[ "$line" == *"time="* ]]; then
+            echo "$line"
+        fi
+    done
     
     end_time=$(date +%s.%N)
     
