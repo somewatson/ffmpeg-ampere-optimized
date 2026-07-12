@@ -48,18 +48,17 @@ docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
   /media/output_hevc.mp4
 ```
 
-### AV1 Encoding
-Utilizing `libsvtav1` for high-performance, scalable encoding. 
+## Large-Scale Encoding (Chunked Parallelism)
 
-**Note**: This image uses `SVT-AV1` instead of the reference `libaom-av1` implementation. SVT-AV1 is specifically designed for massive multi-core parallelism, making it significantly faster and more efficient on high-core-count systems (e.g., 128+ cores).
+For maximum throughput on high-core-count systems, use chunked encoding. This process splits the input into segments, encodes them in parallel across multiple FFmpeg instances, and concatenates the results.
 
+Use the provided helper script:
 ```bash
-docker run --rm --shm-size=2g --privileged -v $(pwd):/media ffmpeg-ampere-n1 \
-  -i /media/input.mp4 \
-  -c:v libsvtav1 \
-  -crf 30 \
-  -preset 6 \
-  /media/output_av1.mp4
+chmod +x chunked_encode.sh
+./chunked_encode.sh <input_file> <output_file> <codec> <crf> <preset> <chunks> <image_tag>
+
+# Example: Split into 10 chunks using libx265
+./chunked_encode.sh input.mp4 output.mp4 libx265 28 slow 10 ffmpeg-ampere-n1
 ```
 
 ## Benchmarks
@@ -86,10 +85,12 @@ Performance comparison between a generic FFmpeg image and the optimized `ffmpeg-
 
 ## Optimizations applied
 - **Target CPU**: `-mcpu=neoverse-n1` (Optimized for the Ampere Neoverse-N1 architecture)
+- **Link-Time Optimization**: `-flto=auto` enabled across all libraries and FFmpeg for improved inter-procedural optimization.
 - **Compiler Flags**:
     - Standard optimization level (Default `-O2`) used for stability and peak performance on N1.
 - **Libraries**: `libx264`, `libx265`, `libvpx`, `libsvtav1`
 - **Architecture**: Built specifically for ARM64 / Ampere N1.
+
 
 ## Credits
 This project was created by [Some Watson](https://somewatson.com/) with the assistance of opencode, an AI software engineering agent.
