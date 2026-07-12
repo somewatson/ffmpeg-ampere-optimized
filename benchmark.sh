@@ -140,13 +140,7 @@ for idx in "${!IMAGES[@]}"; do
         if [ "$CHUNKED_ONLY" = true ] && [ "$MODE" == "standard" ]; then
              continue
         fi
-
-        # Chunked mode only makes sense for the optimized image if we want to test it, 
-        # but we can test it for both. However, chunked encoding depends on the image.
-        if [ "$MODE" == "chunked" ] && [ "$LABEL" == "Generic1" ]; then
-             continue # Skip chunked for generic to keep it simple, or implement it
-        fi
-
+        
         for CODEC in "${CODECS[@]}"; do
             # Run encode
             RES=$(run_benchmark "$IMAGE" "$LABEL" "$CODEC" "$MODE")

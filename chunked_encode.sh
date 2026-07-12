@@ -63,8 +63,9 @@ encode_chunk() {
     local image=$5
     local base=$(basename "$seg")
     local out="encoded_tmp/enc_$base"
+    local log="encoded_tmp/enc_$base.log"
     
-    docker run --rm --ipc=host --privileged -v "$(pwd):/config" "$image" -i "/config/$seg" -c:v "$codec" -crf "$crf" -preset "$preset" -c:a copy "/config/$out"
+    docker run --rm --ipc=host --privileged -v "$(pwd):/config" "$image" -i "/config/$seg" -c:v "$codec" -crf "$crf" -preset "$preset" -c:a copy "/config/$out" > "$log" 2>&1
 }
 
 # Use GNU Parallel if available, otherwise a simple loop with backgrounding
@@ -94,6 +95,22 @@ for seg in $(ls "$ENCODED_DIR"/*.mp4 | sort); do
 done
 
 docker run --rm -v "$(pwd):/config" $IMAGE -f concat -safe 0 -i "/config/$CONCAT_LIST" -c copy "/config/$OUTPUT"
+
+# Calculate Average FPS
+TOTAL_FPS=0
+COUNT=0
+for log in $(ls "$ENCODED_DIR"/*.log 2>/dev/null); do
+    FPS=$(grep -o "fps=[ ]*[0-9.]*" "$log" | tail -n 1 | cut -d'=' -f2)
+    if [ ! -z "$FPS" ]; then
+        TOTAL_FPS=$(echo "$TOTAL_FPS + $FPS" | bc)
+        COUNT=$((COUNT + 1))
+    fi
+done
+
+if [ "$COUNT" -gt 0 ]; then
+    AVG_FPS=$(echo "scale=2; $TOTAL_FPS / $COUNT" | bc)
+    echo "fps=$AVG_FPS" >&2
+fi
 
 # Cleanup
 rm -rf "$CHUNKS_DIR" "$ENCODED_DIR" "$CONCAT_LIST"
