@@ -2,6 +2,8 @@
 
 This image provides a build of FFmpeg optimized specifically for the ARM Neoverse-N1 architecture, following the Ampere Computing tuning guidelines.
 
+**Docker Image**: [somewatson/ffmpeg-ampere-n1](https://hub.docker.com/r/somewatson/ffmpeg-ampere-n1)
+
 **Source**: [Ampere FFmpeg Tuning Guide](https://amperecomputing.com/tuning-guides/FFmpeg-Tuning-Guide)
 
 ## Build the Image
