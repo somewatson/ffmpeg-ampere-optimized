@@ -14,6 +14,11 @@ RUN apt-get update && apt-get install -y \
     nasm \
     libnuma-dev \
     pkg-config \
+    autoconf \
+    automake \
+    libtool \
+    meson \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 # Setup directories
@@ -62,6 +67,26 @@ RUN export CFLAGS="-mcpu=neoverse-n1" && \
     make -j $(nproc) && \
     make install
 
+# Build libfdk-aac
+RUN cd /ffmpeg_sources && \
+    git clone --depth 1 https://github.com/mstorsjo/fdk-aac && \
+    cd fdk-aac && \
+    autoreconf -fiv && \
+    ./configure --prefix="/ffmpeg_build" --disable-shared && \
+    make -j $(nproc) && \
+    make install
+
+# Build libdav1d
+RUN export CFLAGS="-mcpu=neoverse-n1" && \
+    export CXXFLAGS="-mcpu=neoverse-n1" && \
+    cd /ffmpeg_sources && \
+    git clone --depth 1 https://code.videolan.org/videolan/dav1d.git && \
+    mkdir -p dav1d/build && \
+    cd dav1d/build && \
+    meson setup -Denable_tools=false -Denable_tests=false --default-library=static .. --prefix "/ffmpeg_build" --libdir="/ffmpeg_build/lib" && \
+    ninja -j $(nproc) && \
+    ninja install
+
 # Build SVT-AV1
 RUN export CFLAGS="-mcpu=neoverse-n1 -flto=auto" && \
     export CXXFLAGS="-mcpu=neoverse-n1 -flto=auto" && \
@@ -94,6 +119,8 @@ RUN cd /ffmpeg_sources/ffmpeg && \
         --enable-libvpx \
         --enable-libx264 \
         --enable-libx265 \
+        --enable-libfdk-aac \
+        --enable-libdav1d \
         --enable-nonfree
 
 RUN cd /ffmpeg_sources/ffmpeg && \
